@@ -298,8 +298,8 @@ async function compileCategories() {
         
         DDMenu.append($(`
             <div class="ownerLayout">
-                <div class="UserAvatarXSmall" style="background-image:url('${currentUser.User.Avatar}')"></div>
-                <div>${currentUser.User.Name}</div>
+                <div class="UserAvatarXSmall" style="background-image:url('${currentUser.Avatar}')"></div>
+                <div>${currentUser.Name}</div>
             </div>
         `));
         DDMenu.append($(`<div class="dropdown-divider"></div>`));
@@ -350,10 +350,10 @@ async function compileCategories() {
         showLoginForm();
     });
     $('#modifyCmd').on("click", function () {
-        showModifyForm(currentUser.User);
+        showModifyForm(currentUser);
     });
     $('#logoutCmd').on("click", async function () {
-        await Users_API.Logout(currentUser.User.Id)
+        await Users_API.Logout(currentUser.Id)
         sessionStorage.setItem('currentUser', null);
         currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
         showLoginForm();
@@ -635,11 +635,13 @@ function renderUserForm(user = null){
     $('#userForm').on("submit", async function (event) {
         event.preventDefault();
         let user = getFormData($("#userForm"))
-        user.Authorizations = currentUser.User.Authorizations;
+        user.Authorizations = currentUser.Authorizations;
         if(register){
             user = await Users_API.register(user)
         }else{
             user = await Users_API.Modify(user);
+            sessionStorage.setItem('currentUser', JSON.stringify(user));
+            currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
         } 
         
         if (!Users_API.error) {
@@ -727,9 +729,9 @@ function renderLoginForm(newAccount = false) {
         user = await Users_API.Login(loginInfo);
         
         if (!Users_API.error) {
-            sessionStorage.setItem('currentUser', JSON.stringify(user));
+            sessionStorage.setItem('currentUser', JSON.stringify(user.User));
             currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
-            if(currentUser.User.VerifyCode != "verified"){
+            if(currentUser.VerifyCode != "verified"){
                 await showVerifyForm();
             }
             else{
@@ -764,7 +766,7 @@ function renderVerifyForm(){
         `);
     $("#form").append(`
         <form class="form loginForm" id="verifyForm">
-            <input type="hidden" name="id" id="id" value="${currentUser.User.Id}"/>
+            <input type="hidden" name="id" id="id" value="${currentUser.Id}"/>
             <input 
                 class="form-control"
                 name="code"
