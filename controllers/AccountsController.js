@@ -169,7 +169,7 @@ export default class AccountsController extends Controller {
     // PUT:account/modify body payload[{"Id": 0, "Name": "...", "Email": "...", "Password": "..."}]
     modify(user) {
         // empty asset members imply no change and there values will be taken from the stored record
-        if (AccessControl.writeGranted(this.HttpContext.authorizations, AccessControl.user())) {
+        if (AccessControl.writeGranted(user.Authorizations, AccessControl.user())) {
             if (this.repository != null) {
                 user.Created = utilities.nowInSeconds();
                 let foundedUser = this.repository.findByField("Id", user.Id);

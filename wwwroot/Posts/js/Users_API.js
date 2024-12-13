@@ -91,23 +91,32 @@ class Users_API {
             });
         });
     }
-    static async Delete(id) {
+
+    static async Verify(verifyInfo){
         Users_API.initHttpState();
         return new Promise(resolve => {
             $.ajax({
-                url: this.SERVER_URL() + "/" + id,
-                type: "DELETE",
-                complete: () => {
-                    Users_API.initHttpState();
-                    resolve(true);
-                },
-                error: (xhr) => {
-                    Users_API.setHttpErrorState(xhr); resolve(null);
-                }
+                url: this.Host_URL() + "/accounts/verify?id=" + verifyInfo.id +"&code="+ verifyInfo.code,
+                type: "GET",
+                contentType: 'application/json',
+                success: (data) => { resolve(data); },
+                error: (xhr) => { Users_API.setHttpErrorState(xhr); resolve(null); }
             });
         });
     }
-    static async Verify(){
+
+    static async Modify(userInfo) {
+        Users_API.initHttpState();
         
+        return new Promise(resolve => {
+            $.ajax({
+                url: this.SERVER_URL() + "/modify",
+                type: "PUT",
+                contentType: 'application/json',
+                data: JSON.stringify(userInfo),
+                success: (data) => { resolve(data); },
+                error: (xhr) => { Users_API.setHttpErrorState(xhr); resolve(null); }
+            });
+        });
     }
 }

@@ -146,11 +146,21 @@ function showLoginForm(newAccount = false) {
     $("#viewTitle").text("Connexion");
     renderLoginForm(newAccount);
 }
+function showVerifyForm() {
+    showForm();
+    $("#viewTitle").text("Connexion");
+    renderVerifyForm();
+}
 function showRegisterForm() {
 
     showForm();
     $("#viewTitle").text("Inscription");
-    renderNewUserForm();
+    renderUserForm();
+}
+function showModifyForm(user){
+    showForm();
+    $("#viewTitle").text("Modification de profil");
+    renderUserForm(user);
 }
 function showCreatePostForm() {
     showForm();
@@ -339,6 +349,9 @@ async function compileCategories() {
     $('#loginCmd').on("click", function () {
         showLoginForm();
     });
+    $('#modifyCmd').on("click", function () {
+        showModifyForm(currentUser.User);
+    });
     $('#logoutCmd').on("click", async function () {
         await Users_API.Logout(currentUser.User.Id)
         sessionStorage.setItem('currentUser', null);
@@ -519,7 +532,7 @@ function newUser() {
     return User;
 }
 
-function renderNewUserForm(user = null){
+function renderUserForm(user = null){
     let register = user == null;
     if (register) user = newUser();
     $("#form").show();
@@ -622,11 +635,21 @@ function renderNewUserForm(user = null){
     $('#userForm').on("submit", async function (event) {
         event.preventDefault();
         let user = getFormData($("#userForm"))
+        user.Authorizations = currentUser.User.Authorizations;
+        if(register){
+            user = await Users_API.register(user)
+        }else{
+            user = await Users_API.Modify(user);
+        } 
         
-        user = await Users_API.Register(user);
         if (!Users_API.error) {
             
-            await showLoginForm(true);
+            if(register){
+                await showLoginForm(true);
+            }else{
+                await showPosts();
+            } 
+            
         }
         else
             showError("Une erreur est survenue! ", Posts_API.currentHttpError);
@@ -706,7 +729,13 @@ function renderLoginForm(newAccount = false) {
         if (!Users_API.error) {
             sessionStorage.setItem('currentUser', JSON.stringify(user));
             currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
-            await showPosts();
+            if(currentUser.User.VerifyCode != "verified"){
+                await showVerifyForm();
+            }
+            else{
+                await showPosts();
+            }
+
 
         }
         else{
@@ -724,6 +753,66 @@ function renderLoginForm(newAccount = false) {
     $('#cancel').on("click", async function () {
         await showPosts();
     });
+}
+function renderVerifyForm(){
+    $("#form").show();
+    $("#form").empty();
+    $("#form").append(`
+        <div style="font-weight: bold;" id="newAccountMsg">
+            Veuillez entrer le code de vérification recu par courriel
+        </div>
+        `);
+    $("#form").append(`
+        <form class="form loginForm" id="verifyForm">
+            <input type="hidden" name="id" id="id" value="${currentUser.User.Id}"/>
+            <input 
+                class="form-control"
+                name="code"
+                id="Code"
+                placeholder="code de vérification"
+                required
+                RequireMessage="Veuillez entrer votre code" 
+                value=""
+            />
+            <span id="codeError" class="error-message" style="color: red; display: none;">
+                Code invalide
+            </span>
+            <br>
+            <input type="submit" value="Vérifier" id="verifyUser" class="btn btn-primary" style="width: 100%;" >
+            <hr style="width: 100%; margin: 10px 0;">
+            
+        </form>
+    `);
+  
+    initFormValidation();
+
+
+    $("#commit").hide();
+    $("#codeError").hide();
+
+
+    $('#verifyForm').on("submit", async function (event) {
+        event.preventDefault();
+        let verifyInfo = getFormData($("#verifyForm"));
+
+
+        user = await Users_API.Verify(verifyInfo);
+        
+        if (!Users_API.error) {
+
+            await showPosts();
+
+        }
+        else{
+            if(Users_API.currentHttpError === "Verification code does not matched."){
+                $("#codeError").show();
+                
+            }
+            console.log("Une erreur est survenue! ", Users_API.currentHttpError);
+        }
+            
+    });
+
 }
 function renderPostForm(post = null) {
     let create = post == null;
