@@ -61,7 +61,7 @@ class Users_API {
                 type: "POST",
                 contentType: 'application/json',
                 data: JSON.stringify(loginInfo),
-                success: (data) => { sessionStorage.setItem('token', data.Access_token); resolve(data); },
+                success: (data) => {  resolve(data); },
                 error: (xhr) => { Users_API.setHttpErrorState(xhr); resolve(null); }
             });
         });
@@ -74,6 +74,19 @@ class Users_API {
                 type: "GET",
                 contentType: 'application/json',
                 success: (data) => { resolve(data); },
+                error: (xhr) => { Users_API.setHttpErrorState(xhr); resolve(null); }
+            });
+        });
+    }
+    static async Register(registerInfo){
+        Users_API.initHttpState();
+        return new Promise(resolve => {
+            $.ajax({
+                url: this.API_URL() + "/register",
+                type: "POST",
+                contentType: 'application/json',
+                data: JSON.stringify(registerInfo),
+                success: (data) => {resolve(data); },
                 error: (xhr) => { Users_API.setHttpErrorState(xhr); resolve(null); }
             });
         });

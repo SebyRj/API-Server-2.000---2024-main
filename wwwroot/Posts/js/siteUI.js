@@ -140,10 +140,17 @@ function showError(message, details = "") {
     $("#errorContainer").append($(`<div>${message}</div>`));
     $("#errorContainer").append($(`<div>${details}</div>`));
 }
-function showLoginForm() {
+function showLoginForm(newAccount = false) {
+
     showForm();
     $("#viewTitle").text("Connexion");
-    renderLoginForm();
+    renderLoginForm(newAccount);
+}
+function showRegisterForm() {
+
+    showForm();
+    $("#viewTitle").text("Inscription");
+    renderNewUserForm();
 }
 function showCreatePostForm() {
     showForm();
@@ -509,88 +516,134 @@ function newUser() {
     User.Email = "";
     User.Password = "";
     User.Avatar = "no-avatar.png";
+    return User;
 }
-function renderNewUserForm(){
+
+function renderNewUserForm(user = null){
+    let register = user == null;
+    if (register) user = newUser();
     $("#form").show();
     $("#form").empty();
     $("#form").append(`
-        <form class="form registerForm" id="registerForm">
-            <input 
-                class="form-control Email"
-                name="Email"
-                id="Email"
-                placeholder="Courriel"
-                required
-                RequireMessage="Veuillez entrer votre courriel" 
-                InvalidMessage="Veuillez entrer un courriel valide"
-                value=""
-            />
-            <span id="emailError" class="error-message" style="color: red; display: none;">
-                Courriel introuvable
-            </span>
+        <form class="form" id="userForm">
+            <div class="formBoxes">
+
+                <input type="hidden" name="Id" id="Id" value="${user.Id}"/>
+
+                <label for="Email" class="form-label">Adresse de courriel </label>
+                <input 
+                    class="form-control Email"
+                    name="Email"
+                    id="Email"
+                    placeholder="Courriel"
+                    required
+                    RequireMessage="Veuillez entrer votre courriel" 
+                    InvalidMessage="Veuillez entrer un courriel valide"
+                    value="${user.Email}"
+                />
+                <br>
+                <input 
+                    class="form-control MatchedInput"
+                    matchedInputId="Email"
+                    name="EmailVerify"
+                    id="EmailVerify"
+                    placeholder="Vérification"
+                    required
+                    RequireMessage="Obligatoire" 
+                    value="${user.Email}"
+                />
+            </div>
+
+            <div class="formBoxes">
+                <label for="Password" class="form-label">Mot de passe </label>
+                <input 
+                    class="form-control "
+                    type="password"
+                    name="Password" 
+                    id="Password" 
+                    placeholder="Mot de passe"
+                    required
+                    RequireMessage="Veuillez entrer un mot de passe"
+                    InvalidMessage="Mot de passe incorrect"
+                    value="${user.Password}"
+                />
+                <br>
+                <input 
+                    class="form-control MatchedInput"
+                    matchedInputId="Password"
+                    type="password"
+                    name="PasswordVerification" 
+                    id="PasswordVerification" 
+                    placeholder="Vérification"
+                    required
+                    RequireMessage="Obligatoire"
+                    value="${user.Password}"
+                />
+            </div>
+            
+            <div class="formBoxes">
+                <label for="Name" class="form-label">Nom </label>
+                <input 
+                    class="form-control"
+                    name="Name"
+                    id="Name"
+                    placeholder="Nom"
+                    required
+                    value="${user.Name}"
+                />
+            </div>
+
+
+            <div class="formBoxes">
+                <label class="form-label">Avatar </label>
+                <div class='avatarUploaderContainer'>
+                    <div class='imageUploader' 
+                        newImage='${register}' 
+                        controlId='Image' 
+                        imageSrc='${user.Avatar}' 
+                        waitingImage="Loading_icon.gif">
+                    </div>
+                </div>
+            </div>
+
             <br>
-            <input 
-                class="form-control "
-                type="password"
-                name="Password" 
-                id="Password" 
-                placeholder="Mot de passe"
-                required
-                RequireMessage="Veuillez entrer un mot de passe"
-                InvalidMessage="Mot de passe incorrect"
-                value=""
-            />
-            <span id="passwordError" class="error-message" style="color: red; display: none;">
-                Mot de passe incorrect
-            </span>
-            <br>
-            <input type="submit" value="Entrer" id="loginUser" class="btn btn-primary" style="width: 100%;" >
+            <input type="submit" value="Enregistrer" id="registerUser" class="btn btn-primary" style="width: 100%;" >
             <hr style="width: 100%; margin: 10px 0;">
-            <input type="button" value="Nouveau compte" id="registerUser" class="btn btn-secondary" style="width: 100%;" >
+            <input type="button" value="Annuler" id="Cancel" class="btn btn-secondary" style="width: 100%;" >
         </form>
     `);
+    
+
+    initImageUploaders();
     initFormValidation();
+    addConflictValidation('/accounts/conflict','Email','Enregistrer');
 
-
-    $("#commit").click(function () {
-        $("#commit").off();
-        return $('#loginUser').trigger("click");
-    });
-    $('#loginForm').on("submit", async function (event) {
-        $("#emailError").hide();
-        $("#passwordError").hide();
+    $("#commit").hide()
+    $('#userForm').on("submit", async function (event) {
         event.preventDefault();
-        let loginInfo = getFormData($("#loginForm"));
-
-
-        user = await Users_API.Login(loginInfo);
+        let user = [Id = getFormData($("#userForm")).id, Name = getFormData($("#userForm")), Email = getFormData($("#userForm")).Email, Password = getFormData($("#userForm")).Password]
         
+        user = await Users_API.Register(user);
         if (!Users_API.error) {
-            sessionStorage.setItem('currentUser', JSON.stringify(user));
-            currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
-            await showPosts();
-
-        }
-        else{
-            if(Users_API.currentHttpError === "This user email is not found."){
-                $("#emailError").show();
-                console.log("passe")
-            }
-            else if(Users_API.currentHttpError === "Wrong password."){
-                $("#passwordError").show();
-            }
-            console.log("Une erreur est survenue! ", Users_API.currentHttpError);
-        }
             
+            await showLoginForm(true);
+        }
+        else
+            showError("Une erreur est survenue! ", Posts_API.currentHttpError);
     });
     $('#cancel').on("click", async function () {
         await showPosts();
     });
 }
 
-function renderLoginForm() {
+function renderLoginForm(newAccount = false) {
     $("#form").show();
     $("#form").empty();
+    $("#form").append(`
+        <div style="font-weight: bold;" id="newAccountMsg">
+            Votre compte a été creé. veuillez prendre vos courriels pour récupérer votre code de vérification qui vous sera démandé lors de votre prochaine connexion.
+        </div>
+        `);
     $("#form").append(`
         <form class="form loginForm" id="loginForm">
             <input 
@@ -627,12 +680,19 @@ function renderLoginForm() {
             <input type="button" value="Nouveau compte" id="registerUser" class="btn btn-secondary" style="width: 100%;" >
         </form>
     `);
+  
     initFormValidation();
 
 
-    $("#commit").click(function () {
-        $("#commit").off();
-        return $('#loginUser').trigger("click");
+    $("#commit").hide();
+    if(newAccount){
+        $("#newAccountMsg").show();
+    }
+    else{
+        $("#newAccountMsg").hide();
+    }
+    $('#registerUser').on("click", async function () {
+        await showRegisterForm();
     });
     $('#loginForm').on("submit", async function (event) {
         $("#emailError").hide();
