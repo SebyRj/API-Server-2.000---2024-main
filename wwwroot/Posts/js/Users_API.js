@@ -1,7 +1,7 @@
 
 class Users_API {
     static Host_URL() { return "http://localhost:5000"; }
-    static API_URL() { return this.Host_URL() + "/api/accounts" };
+    static SERVER_URL() { return this.Host_URL() + "/accounts" };
     static TOKEN_URL() { return this.Host_URL() + "/token";}
     static initHttpState() {
         this.currentHttpError = "";
@@ -21,7 +21,7 @@ class Users_API {
         Users_API.initHttpState();
         return new Promise(resolve => {
             $.ajax({
-                url: this.API_URL(),
+                url: this.SERVER_URL(),
                 type: 'HEAD',
                 contentType: 'text/plain',
                 complete: data => { resolve(data.getResponseHeader('ETag')); },
@@ -33,7 +33,7 @@ class Users_API {
         Users_API.initHttpState();
         return new Promise(resolve => {
             $.ajax({
-                url: this.API_URL() + (id != null ? "/" + id : ""),
+                url: this.SERVER_URL() + (id != null ? "/" + id : ""),
                 complete: data => { resolve({ ETag: data.getResponseHeader('ETag'), data: data.responseJSON }); },
                 error: (xhr) => { Users_API.setHttpErrorState(xhr); resolve(null); }
             });
@@ -43,7 +43,7 @@ class Users_API {
         Users_API.initHttpState();
         return new Promise(resolve => {
             $.ajax({
-                url: this.API_URL() + queryString,
+                url: this.SERVER_URL() + queryString,
                 complete: data => {
                     resolve({ ETag: data.getResponseHeader('ETag'), data: data.responseJSON });
                 },
@@ -82,7 +82,7 @@ class Users_API {
         Users_API.initHttpState();
         return new Promise(resolve => {
             $.ajax({
-                url: this.API_URL() + "/register",
+                url: this.SERVER_URL() + "/register",
                 type: "POST",
                 contentType: 'application/json',
                 data: JSON.stringify(registerInfo),
@@ -95,7 +95,7 @@ class Users_API {
         Users_API.initHttpState();
         return new Promise(resolve => {
             $.ajax({
-                url: this.API_URL() + "/" + id,
+                url: this.SERVER_URL() + "/" + id,
                 type: "DELETE",
                 complete: () => {
                     Users_API.initHttpState();
@@ -106,5 +106,8 @@ class Users_API {
                 }
             });
         });
+    }
+    static async Verify(){
+        
     }
 }

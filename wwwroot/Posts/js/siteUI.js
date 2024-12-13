@@ -389,7 +389,7 @@ function attach_Posts_UI_Events_Callback() {
 function addWaitingGif() {
     clearTimeout(waiting);
     waiting = setTimeout(() => {
-        postsPanel.itemsPanel.append($("<div id='waitingGif' class='waitingGifcontainer'><img class='waitingGif' src='Loading_icon.gif' /></div>'"));
+        postsPanel.itemsPanel.append($("<div id='waitingGif' class='waitingGifcontainer'><img class='waitingGif' src='Posts/Loading_icon.gif' /></div>'"));
     }, waitingGifTrigger)
 }
 function removeWaitingGif() {
@@ -505,7 +505,7 @@ function newPost() {
     Post.Id = 0;
     Post.Title = "";
     Post.Text = "";
-    Post.Image = "news-logo-upload.png";
+    Post.Image = "Posts/news-logo-upload.png";
     Post.Category = "";
     return Post;
 }
@@ -515,7 +515,7 @@ function newUser() {
     User.Name = "";
     User.Email = "";
     User.Password = "";
-    User.Avatar = "no-avatar.png";
+    User.Avatar = "Posts/no-avatar.png";
     return User;
 }
 
@@ -599,9 +599,9 @@ function renderNewUserForm(user = null){
                 <div class='avatarUploaderContainer'>
                     <div class='imageUploader' 
                         newImage='${register}' 
-                        controlId='Image' 
+                        controlId='Avatar' 
                         imageSrc='${user.Avatar}' 
-                        waitingImage="Loading_icon.gif">
+                        waitingImage="Posts/Loading_icon.gif">
                     </div>
                 </div>
             </div>
@@ -621,7 +621,7 @@ function renderNewUserForm(user = null){
     $("#commit").hide()
     $('#userForm').on("submit", async function (event) {
         event.preventDefault();
-        let user = [Id = getFormData($("#userForm")).id, Name = getFormData($("#userForm")), Email = getFormData($("#userForm")).Email, Password = getFormData($("#userForm")).Password]
+        let user = getFormData($("#userForm"))
         
         user = await Users_API.Register(user);
         if (!Users_API.error) {
@@ -769,7 +769,7 @@ function renderPostForm(post = null) {
                      newImage='${create}' 
                      controlId='Image' 
                      imageSrc='${post.Image}' 
-                     waitingImage="Loading_icon.gif">
+                     waitingImage="Posts/Loading_icon.gif">
                 </div>
             </div>
             <div id="keepDateControl">
